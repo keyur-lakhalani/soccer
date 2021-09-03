@@ -8,15 +8,6 @@ use App\Services\ResponseService;
 
 class AuthController extends Controller
 {
-    /* 
-    * Response service object
-    */
-    var $response;
-    public function __construct(ResponseService $response)
-    {
-        $this->response = $response;
-    }
-
     public function login(Request $request)
     {
         $login = $request->validate([
@@ -26,9 +17,9 @@ class AuthController extends Controller
 
         if (auth()->attempt($login)) {
             $token = auth()->user()->createToken('SoccerAPP')->accessToken;
-            return $this->response->onSuccess(['token' => $token->token]);
+            return ResponseService::onSuccess(['token' => $token->token]);
         } else {
-            return $this->response->onAuthorizationError();
+            return ResponseService::onAuthorizationError();
         }
     }
 }

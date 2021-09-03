@@ -6,20 +6,42 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\ResponseService;
 use App\Models\Team;
+use App\Services\TeamService;
 
-class AuthController extends Controller
+class TeamController extends Controller
 {
-    /* 
-    * Response service object
-    */
-    var $response;
+    /**
+    * Display a listing of the team.
+    *use App\Services\TeamService;
 
-    var $team;
-    public function __construct(ResponseService $response, Team $team)
+    * @return \Illuminate\Http\Response
+    */
+    public function index()
     {
-        $this->response = $response;
-        $this->team = $team;
+        $teams = Team::all();
+        
     }
-    
-    
+
+    /**
+    * Add team 
+    *
+    * @return \Illuminate\Http\Response
+    */
+    public function store(Request $request)
+    {
+        $validator = TeamService::validateData($request);
+        
+        if ($validator->fails()) {          
+            return ResponseService::onError($validator->errors());
+        }
+        
+        //store the record in database
+        $teams = TeamService::add($request);
+
+        if(!empty($teams)){
+            return ResponseService::onSuccess(['message' => 'Team Created', 'id' => $teams->id]);
+        }
+        return ResponseService::onError(['message' => 'Something went wrong']);
+    }    
+
 }
