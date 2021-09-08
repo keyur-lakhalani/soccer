@@ -25,17 +25,17 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::get('team',  [TeamController::class, 'index']);
 
-Route::post('team/update/{id}',  [TeamController::class, 'update']);
-Route::post('team/delete/{id}',  [TeamController::class, 'delete']);
 Route::get('team-player/{idOrName}',  [TeamPlayerController::class, 'index']);
 Route::get('team-player/info/{idOrName}',  [TeamPlayerController::class, 'info']);
-Route::post('team-player/store',  [TeamPlayerController::class, 'store']);
-Route::post('team-player/update/{id}',  [TeamPlayerController::class, 'update']);
-Route::post('team-player/delete/{id}',  [TeamPlayerController::class, 'delete']);
 Route::group(['middleware' => 'auth:api'], function(){
 	Route::post('team/store',  [TeamController::class, 'store']);
+	Route::post('team/update/{id}',  [TeamController::class, 'update']);
+	Route::delete('team/delete/{id}',  [TeamController::class, 'delete']);
+	Route::post('team-player/store',  [TeamPlayerController::class, 'store']);
+	Route::post('team-player/update/{id}',  [TeamPlayerController::class, 'update']);
+	Route::delete('team-player/delete/{id}',  [TeamPlayerController::class, 'delete']);
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+/*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});
+});*/
