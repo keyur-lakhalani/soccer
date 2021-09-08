@@ -14,5 +14,13 @@ class Team extends Model
     protected $fillable = [
         'name',
         'logo'
-    ];  
+    ];
+    
+    /**
+     * Get the player associated with the user.
+     */
+    public function player()
+    {
+        return $this->hasMany(TeamPlayer::class);
+    }
 }

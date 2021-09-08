@@ -5,21 +5,25 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\ResponseService;
-use App\Models\Team;
 use App\Services\TeamService;
+use Exception;
 
 class TeamController extends Controller
 {
     /**
     * Display a listing of the team.
-    *use App\Services\TeamService;
+    * use App\Services\TeamService;
 
     * @return \Illuminate\Http\Response
     */
     public function index()
     {
-        $teams = Team::all();
-        
+        try{
+            $teams = TeamService::getTeamList();
+            return ResponseService::onSuccess($teams);    
+        }catch(Exception $e){
+            return ResponseService::renderException($e);
+        }
     }
 
     /**
@@ -29,19 +33,27 @@ class TeamController extends Controller
     */
     public function store(Request $request)
     {
-        $validator = TeamService::validateData($request);
-        
-        if ($validator->fails()) {          
-            return ResponseService::onError($validator->errors());
-        }
-        
-        //store the record in database
-        $teams = TeamService::add($request);
+        return TeamService::add($request);
+    }
+    
+    /**
+    * Update team 
+    *
+    * @return \Illuminate\Http\Response
+    */
+    public function update(Request $request, $id)
+    {
+        return TeamService::update($request, $id);  
+    }
 
-        if(!empty($teams)){
-            return ResponseService::onSuccess(['message' => 'Team Created', 'id' => $teams->id]);
-        }
-        return ResponseService::onError(['message' => 'Something went wrong']);
-    }    
+    /**
+    * delete team 
+    *
+    * @return \Illuminate\Http\Response
+    */
+    public function delete($id)
+    {
+        return TeamService::deleteTeam($id);
+    }
 
 }
