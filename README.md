@@ -56,3 +56,8 @@ API endpoints
 9] POST - http://soccer.local/api/team-player/update/{player_id}
 
 10] DELETE - http://soccer.local/api/team-player/delete/{player_id}
+
+
+TO DO 
+- Unit testing
+- Swagger
