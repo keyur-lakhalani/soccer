@@ -45,17 +45,17 @@ API endpoints
 
 4] GET - http://soccer.local/api/team-player/info/{player-id/player-name}
 
-5] POST - http://soccer.local/api/team/store
+5] POST - http://soccer.local/api/team
 
-6] POST - http://soccer.local/api/team/update/{team_id}
+6] POST - http://soccer.local/api/team/{team_id}
 
-7] DELETE - http://soccer.local/api/team/delete/{team_id}
+7] DELETE - http://soccer.local/api/team/{team_id}
 
-8] POST - http://soccer.local/api/team-player/store
+8] POST - http://soccer.local/api/team-player
 
-9] POST - http://soccer.local/api/team-player/update/{player_id}
+9] POST - http://soccer.local/api/team-player/{player_id}
 
-10] DELETE - http://soccer.local/api/team-player/delete/{player_id}
+10] DELETE - http://soccer.local/api/team-player/{player_id}
 
 
 TO DO 
