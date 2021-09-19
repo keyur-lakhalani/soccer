@@ -2,10 +2,8 @@
 
 namespace App\Services;
 use Illuminate\Http\Request;
-use Validator, Exception;
-use App\models\TeamPlayer;
+use Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
 
 Class TeamPlayerService {
     /*
@@ -13,7 +11,7 @@ Class TeamPlayerService {
     * $data = array()
     * return @json
     */
-    public static function validateData(Request $request, $playerID = ''){
+    public function validateData(Request $request, $playerID = ''){
         $validator = Validator::make($request->all(), 
             [ 
                 'team_id' => 'required|regex:/^[0-9]+$/|exists:team,id',
@@ -43,118 +41,28 @@ Class TeamPlayerService {
         );   
         return $validator;
     }
+
+    public function uploadTeamPlayerImage (Request $request)
+    {
+        if ($request->file('image')->isValid())
+        {
+            $returnObj = (object)[];
+            $image = $request->file('image');
+            
+            $returnObj->name = time().'.'.$image->extension();
+            $returnObj->path = env('TEAM_PLAYER_IMAGE_PATH');
+            
+            $isImageUpload = UploadImageService::storeFile($image->path(), $returnObj->path, $returnObj->name, 150, 150);
+            
+            if($isImageUpload){
+                return $returnObj;
+            }
+        }
+        return false;
+    }
     
-    public static function getTeamPlayerByID($id)
-    {
-        return TeamPlayer::find($id);
-    }
-
-    public static function getTeamPlayerByIDOrName($idOrName)
-    {
-        $image_host = env('TEAM_PLAYER_IMAGE_URL', '/');
-        try{
-            return TeamPlayer::select(['team_player.id AS identifier', 'first_name', 'last_name', 
-                            DB::raw('CONCAT("'.$image_host.'/",  image_name) AS logo'), 't.name as team_name'
-                            ])
-                    ->join('team as t', 't.id', '=', 'team_player.team_id')
-                   ->where('team_player.id', $idOrName)
-                   ->orWhere(DB::raw("CONCAT(first_name,' ',last_name)"), '=', $idOrName)
-                   ->get();
-        }catch(Exception $e){
-            return ResponseService::renderException($e);
-        }
-    }
-
-    public static function add(Request $request){
-        $validator = self::validateData($request);
-        
-        if ($validator->fails()) {          
-            return ResponseService::onError($validator->errors());
-        }
-        
-        //store the record in database
-        $teamPlayer = new TeamPlayer();
-        $imgObj = UploadImageService::storePlayerLogo($request);
-        if(isset($imgObj->name) && !empty($imgObj->name)){
-            try{
-                $teamPlayer->team_id = $request->team_id;
-                $teamPlayer->first_name = $request->first_name; 
-                $teamPlayer->last_name = $request->last_name;
-                $teamPlayer->image_name = $imgObj->name;
-                $teamPlayer->save();   
-            }catch(Exception $e){
-                return ResponseService::renderException($e);
-            }
-        }
-
-        if(isset($teamPlayer->id)){
-            return ResponseService::onSuccess(['message' => 'Player is added to team', 'id' => $teamPlayer->id]);
-        }
-        return ResponseService::onError(['message' => 'Something went wrong']);
-    }
-
-    public static function update(Request $request, $id){
-        $teamPlayer = self::getTeamPlayerByID($id);
-        if(!$teamPlayer){
-            return ResponseService::onNotFoundError();
-        }
-
-        $validator = self::validateData($request, $id);
-        
-        if ($validator->fails()) {          
-            return ResponseService::onError($validator->errors());
-        }
-                
-        $imgObj = UploadImageService::storePlayerLogo($request);
-        if(isset($imgObj->name) && !empty($imgObj->name)){
-            //remove old logo file
-            $old_image = $teamPlayer->image_name;
-            try{
-                $teamPlayer->team_id = $request->team_id;
-                $teamPlayer->first_name = $request->first_name; 
-                $teamPlayer->last_name = $request->last_name;
-                $teamPlayer->image_name = $imgObj->name;
-                $teamPlayer->save();   
-            }catch(Exception $e){
-                return ResponseService::renderException($e);
-            }
-            UploadImageService::removeTeamPlayerImage($old_image);
-        }
-        if(isset($teamPlayer->id)){
-            return ResponseService::onSuccess(['message' => 'Team Player is updated']);
-        }
-        return ResponseService::onError(['message' => 'Something went wrong']);
-    }
-
-    public static function deleteTeamPlayer($id)
-    {
-        $teamPlayer = self::getTeamPlayerByID($id);
-        if(!$teamPlayer){
-            return ResponseService::onNotFoundError();
-        }
-        $image = $teamPlayer->image_name;
-        try{
-            $teamPlayer->delete();
-        }catch(Exception $e){
-            return ResponseService::renderException($e);
-        }
-        UploadImageService::removeTeamPlayerImage($image);
-        return ResponseService::onSuccess(['message' => 'Team Player is deleted']);
-    }
-
-    public static function getTeamPlayerListByTeamID($idOrName, $per_page = 50)
-    {
-        $image_host = env('TEAM_PLAYER_IMAGE_URL', '/');
-        try{
-            return TeamPlayer::select(['team_player.id AS identifier', 'first_name', 'last_name', DB::raw('CONCAT("'.$image_host.'/",  image_name) AS logo')])
-                    ->whereHas('team', function ($query) use($idOrName ){
-                        $query->where('team.id', '=', $idOrName)
-                                ->orWhere('team.name', '=', $idOrName)  ;
-                    })
-                    ->orderBy('first_name')
-                    ->paginate($per_page);       
-        }catch(Exception $e){
-            return ResponseService::renderException($e);
-        }
+    public function removeTeamPlayerImage($imageName){
+        $imagePath = env('TEAM_PLAYER_IMAGE_PATH').'/'.$imageName;
+        return UploadImageService::removeFile($imagePath);
     }
 }
